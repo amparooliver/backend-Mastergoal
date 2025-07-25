@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 # Configure CORS properly
 CORS(app, 
-     origins=["https://mastergoal.onrender.com", "http://localhost:5000"],  # Add your frontend domains
+     origins=["https://mastergoal.onrender.com", "http://localhost:5173"],  # Add your frontend domains
      methods=["GET", "POST", "OPTIONS"],
      allow_headers=["Content-Type", "Authorization"])
 
