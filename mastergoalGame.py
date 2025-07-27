@@ -74,11 +74,11 @@ class MastergoalGame:
         self.passes_count = 0
         self.last_possession_team = None
     
-    def is_goal_white(self, position):
+    def is_goal_LEFT(self, position):
         """Verifica si la posición es un gol para el equipo blanco."""
         return position.row == 14 and 3 <= position.col <= 7
     
-    def is_goal_red(self, position):
+    def is_goal_RIGHT(self, position):
         """Verifica si la posición es un gol para el equipo rojo."""
         return position.row == 0 and 3 <= position.col <= 7
     
@@ -137,15 +137,15 @@ class MastergoalGame:
         """Verifica si la posición es una casilla neutra."""
         if self.level == 1:
             return False     
-        white_adjacent = 0
-        red_adjacent = 0
+        LEFT_adjacent = 0
+        RIGHT_adjacent = 0
         for player in self.players:
             if player.position.is_adjacent(position):
                 if player.team == self.LEFT:
-                    white_adjacent += 1
+                    LEFT_adjacent += 1
                 else:
-                    red_adjacent += 1           
-        return white_adjacent > 0 and red_adjacent > 0 and white_adjacent == red_adjacent
+                    RIGHT_adjacent += 1           
+        return LEFT_adjacent > 0 and RIGHT_adjacent > 0 and LEFT_adjacent == RIGHT_adjacent
     
     def is_ball_in_neutral_state(self):
         """Verifica si la pelota está en estado neutral (igual número de jugadores adyacentes de cada equipo)."""
@@ -219,15 +219,15 @@ class MastergoalGame:
                     continue
                 if new_position == self.ball.position:
                     continue
-                if self.is_goal_white(new_position) or self.is_goal_red(new_position):
+                if self.is_goal_LEFT(new_position) or self.is_goal_RIGHT(new_position):
                     continue  # No puede entrar al área de gol
                 
                 # No puede posicionarse en las casillas de brazos del arquero (CHEQUEA PARA EL ARQUEROE ESTO?)
                 if self.level == 3 and not player.is_goalkeeper:
                     # Verificar brazos de ambos equipos
-                    white_arms = self.get_goalkeeper_arms(self.LEFT)
-                    red_arms = self.get_goalkeeper_arms(self.RIGHT)
-                    if new_position in white_arms or new_position in red_arms:
+                    LEFT_arms = self.get_goalkeeper_arms(self.LEFT)
+                    RIGHT_arms = self.get_goalkeeper_arms(self.RIGHT)
+                    if new_position in LEFT_arms or new_position in RIGHT_arms:
                         continue
                 
                 # LÓGICA ESPECIAL PARA ARQUERO EN NIVEL 3
@@ -312,7 +312,7 @@ class MastergoalGame:
                 new_position = self.ball.position.position_in_direction(direction, distance)
                 
                 # Verificar fuera de límites (permitir entrar a arco)
-                if self.is_out_of_bounds(new_position) and not (self.is_goal_white(new_position) or self.is_goal_red(new_position)):
+                if self.is_out_of_bounds(new_position) and not (self.is_goal_LEFT(new_position) or self.is_goal_RIGHT(new_position)):
                     break
                 
                 # No puede patear a su propio córner
@@ -320,12 +320,12 @@ class MastergoalGame:
                     continue
                 
                 # No puede terminar en su propia área grande (salvo gol)
-                if self.is_in_big_area(new_position, kicker.team) and not (self.is_goal_white(new_position) or self.is_goal_red(new_position)):
+                if self.is_in_big_area(new_position, kicker.team) and not (self.is_goal_LEFT(new_position) or self.is_goal_RIGHT(new_position)):
                     continue
                 
                 # No puede patear a su propio arco (autogol)
-                if (kicker.team == self.LEFT and self.is_goal_red(new_position)) or \
-                (kicker.team == self.RIGHT and self.is_goal_white(new_position)):
+                if (kicker.team == self.LEFT and self.is_goal_RIGHT(new_position)) or \
+                (kicker.team == self.RIGHT and self.is_goal_LEFT(new_position)):
                     continue  # No permitir autogoles
                 
                 # ⚽ SOLO en nivel 3: chequeo arquero y brazos
@@ -397,24 +397,24 @@ class MastergoalGame:
                             break
                     if adjacent_to_opponent:
                         # Sólo permitido si es gol
-                        if not (self.is_goal_white(new_position) or self.is_goal_red(new_position)):
+                        if not (self.is_goal_LEFT(new_position) or self.is_goal_RIGHT(new_position)):
                             continue
 
                 # Nivel 2 y 3: chequeo de casilla neutra en destino
                 if self.level in (2, 3):
-                    white_adjacent = 0
-                    red_adjacent = 0
+                    LEFT_adjacent = 0
+                    RIGHT_adjacent = 0
                     for player in self.players:
                         if player.position.is_adjacent(new_position):
                             if player.team == self.LEFT:
-                                white_adjacent += 1
+                                LEFT_adjacent += 1
                             else:
-                                red_adjacent += 1
-                    if white_adjacent + red_adjacent > 0:
-                        if white_adjacent != red_adjacent:
+                                RIGHT_adjacent += 1
+                    if LEFT_adjacent + RIGHT_adjacent > 0:
+                        if LEFT_adjacent != RIGHT_adjacent:
                             # Hay mayoría, veamos de quién es
-                            if (self.current_team == self.LEFT and red_adjacent > white_adjacent) or \
-                            (self.current_team == self.RIGHT and white_adjacent > red_adjacent):
+                            if (self.current_team == self.LEFT and RIGHT_adjacent > LEFT_adjacent) or \
+                            (self.current_team == self.RIGHT and LEFT_adjacent > RIGHT_adjacent):
                                 continue  # No puedes patear a un lugar dominado por el oponente
 
                 # Si pasa todos los chequeos, es un pateo legal
@@ -476,12 +476,12 @@ class MastergoalGame:
             return False
             
         # Verificar si es un gol
-        if self.is_goal_white(new_ball_position):
+        if self.is_goal_LEFT(new_ball_position):
             self.left_goals += 1
             self.reset_after_goal()
             return True
             
-        if self.is_goal_red(new_ball_position):
+        if self.is_goal_RIGHT(new_ball_position):
             self.right_goals += 1
             self.reset_after_goal()
             return True
