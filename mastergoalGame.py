@@ -1,10 +1,11 @@
+import time
 from ball import Ball
 from player import Player
 from position import Position
 
 # Global constants
-NUM_GOALS = 1 #Number of goals to win
-NUM_TURNS = 40
+NUM_GOALS = 2 #Number of goals to win
+#NUM_TURNS = 40
 
 class MastergoalGame:
     """Clase principal que maneja el estado del juego y las reglas."""
@@ -16,7 +17,7 @@ class MastergoalGame:
     ROWS = 15
     COLS = 11
     
-    def __init__(self, level=1):
+    def __init__(self, level=1, max_turns=None, play_with_timer=False, timer_duration=None):
         """Inicializa el juego con el nivel especificado."""
         self.level = level
         self.left_goals = 0
@@ -28,9 +29,19 @@ class MastergoalGame:
         self.passes_count = 0  # Contador de pases en el turno actual
         self.turn_count = 0  # Contador de turnos
         self.skip_next_turn = False  # Flag para saltarse el siguiente turno (nivel 3)
-        
+        self.max_turns = max_turns  # None = sin límite de turnos
+
+        # Timer logic
+        self.play_with_timer = play_with_timer
+        self.timer_duration = timer_duration  # seconds
+        self.turn_start_time = None  # Will be set at the start of each turn
+
         # Inicializa el juego según el nivel
         self.setup_game(level)
+
+        # Set timer for the very first turn
+        if self.play_with_timer:
+            self.turn_start_time = time.time()
     
     def setup_game(self, level):
         """Configura el juego según el nivel especificado."""
@@ -525,6 +536,10 @@ class MastergoalGame:
         self.turn_count += 1
         self.passes_count = 0  # Reiniciar el contador de pases al cambiar de turno
         
+        # Set turn start time if timer is enabled
+        if self.play_with_timer:
+            self.turn_start_time = time.time()
+
         # Cambiar al siguiente equipo
         self.current_team = self.RIGHT if self.current_team == self.LEFT else self.LEFT
         
@@ -544,7 +559,10 @@ class MastergoalGame:
             'players': [(p.team, p.player_id, p.position.row, p.position.col, p.is_goalkeeper) for p in self.players],
             'passes_count': self.passes_count,
             'turn_count': self.turn_count,
-            'skip_next_turn': self.skip_next_turn
+            'skip_next_turn': self.skip_next_turn,
+            'play_with_timer': self.play_with_timer,
+            'timer_duration': self.timer_duration,
+            'turn_start_time': self.turn_start_time,
         }
     
     def get_winner(self):
@@ -561,7 +579,7 @@ class MastergoalGame:
             return 1
         if self.right_goals >= NUM_GOALS:
             return -1
-        if self.turn_count >= NUM_TURNS:
+        if self.max_turns is not None and self.turn_count >= self.max_turns:
             return 0.1
         return 0
     
